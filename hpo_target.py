@@ -35,24 +35,9 @@ def training_pipeline(
         num_neurons,
         learning_rate,
         optimizer,
-        epochs,
     ):
-    """
-    Trains and validates a simple neural network on the MNIST dataset.
+    epochs = 2
 
-    Args:
-        num_layers (int): Number of hidden layers in the network.
-        num_neurons (int): Number of neurons in each hidden layer.
-        epochs (int): Number of training epochs.
-        learning_rate (float): Learning rate for the optimizer.
-        optimizer (str): Name of the optimizer to use ('adam' or 'sgd').
-
-    Returns:
-        float: The average loss over the validation set after training.
-
-    Raises:
-        KeyError: If the specified optimizer is not supported.
-    """
     # Transformations applied on each image
     transform = transforms.Compose(
         [
@@ -115,4 +100,17 @@ def training_pipeline(
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    neps.run(run_args="run_args.yaml",)
+    neps.run(run_args="run_args.yaml")
+    neps.run(
+        run_pipeline=training_pipeline,
+        pipeline_space=dict(
+            num_layers=neps.IntegerParameter(1, 3),
+            num_neurons=neps.IntegerParameter(8, 64),
+            learning_rate=neps.FloatParameter(0.0001, 0.1, log=True),
+            optimizer=neps.CategoricalParameter(["adam", "sgd"]),
+        ),
+        max_evaluations_total=10,
+        searcher="random_search",
+        root_directory="./neps_output/random_search/",
+        post_run_summary=True,
+    )
