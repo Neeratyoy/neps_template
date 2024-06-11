@@ -1,0 +1,14 @@
+run_args:
+  pipeline_space: ./pipeline_space.yaml
+
+  run_pipeline:
+    path: ./hpo_target.py
+    name: training_pipeline
+
+  searcher: bayesian_optimization
+  searcher_kwargs:
+    initial_design_size: 5
+
+  root_directory: ./neps_output
+  max_evaluations_total: 10
+  overwrite_working_directory: false

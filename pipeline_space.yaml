@@ -1,0 +1,13 @@
+  pipeline_space:
+    num_layers:
+      lower: 1
+      upper: 3
+    num_neurons:
+      lower: 16
+      upper: 128
+    learning_rate:
+      lower: 0.001
+      upper: 0.01
+      log: true
+    optimizer:
+      choices: ["adam", "sgd"]
