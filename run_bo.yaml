@@ -1,0 +1,27 @@
+pipeline_space:
+  num_layers:
+    lower: 1
+    upper: 3
+  num_neurons:
+    lower: 16
+    upper: 128
+  learning_rate:
+    lower: 0.001
+    upper: 0.01
+    log: true
+  optimizer:
+    choices: ["adam", "sgd"]
+  epochs: 1
+
+run_pipeline:
+  path: ./hpo_target.py
+  name: training_pipeline
+
+searcher: bayesian_optimization
+searcher_kwargs:
+  initial_design_size: 5
+
+root_directory: ./neps_output/bo
+max_evaluations_total: 10
+post_run_summary: true
+overwrite_working_directory: false
