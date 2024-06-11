@@ -11,7 +11,7 @@ pipeline_space:
     log: true
   optimizer:
     choices: ["adam", "sgd"]
-  epochs: 1
+  epochs: 10
 
 run_pipeline:
   path: ./hpo_target.py
@@ -19,9 +19,9 @@ run_pipeline:
 
 searcher: bayesian_optimization
 searcher_kwargs:
-  initial_design_size: 5
+  initial_design_size: 10
 
 root_directory: ./neps_output/bo
-max_evaluations_total: 10
+max_evaluations_total: 25
 post_run_summary: true
 overwrite_working_directory: false

@@ -15,7 +15,7 @@ pipeline_space:
   optimizer:
     choices: ["adam", "sgd"]
     default: "adam"
-  epochs: 3
+  epochs: 10
 
 run_pipeline:
   path: ./hpo_target.py
@@ -24,6 +24,6 @@ run_pipeline:
 searcher: random_search
 
 root_directory: ./neps_output/rs
-max_evaluations_total: 10
+max_evaluations_total: 25
 post_run_summary: true
 overwrite_working_directory: false
