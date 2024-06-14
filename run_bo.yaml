@@ -7,10 +7,10 @@ pipeline_space:
     upper: 128
   learning_rate:
     lower: 0.001
-    upper: 0.01
+    upper: 0.1
     log: true
   optimizer:
-    choices: ["adam", "sgd"]
+    choices: ["adamw", "adam", "sgd"]
   epochs: 10
 
 run_pipeline:
@@ -21,7 +21,7 @@ searcher: bayesian_optimization
 searcher_kwargs:
   initial_design_size: 10
 
-root_directory: ./neps_output/bo
-max_evaluations_total: 25
+root_directory: ./neps_debug/bo
+max_evaluations_total: 20
 post_run_summary: true
 overwrite_working_directory: false

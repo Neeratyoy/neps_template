@@ -2,19 +2,15 @@ pipeline_space:
   num_layers:
     lower: 1
     upper: 3
-    default: 2
   num_neurons:
     lower: 16
     upper: 128
-    default: 64
   learning_rate:
     lower: 0.001
     upper: 0.1
-    default: 0.01
     log: true
   optimizer:
-    choices: ["adam", "sgd"]
-    default: "adam"
+    choices: ["adamw", "adam", "sgd"]
   epochs: 10
 
 run_pipeline:
@@ -23,7 +19,7 @@ run_pipeline:
 
 searcher: random_search
 
-root_directory: ./neps_output/rs
-max_evaluations_total: 25
+root_directory: ./neps_debug/rs
+max_evaluations_total: 20
 post_run_summary: true
 overwrite_working_directory: false

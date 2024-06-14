@@ -9,62 +9,37 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
 
 import neps
 from neps.plot.tensorboard_eval import tblogger
 
-
-class SimpleNN(nn.Module):
-    def __init__(self, input_size, num_layers, num_neurons):
-        super().__init__()
-        layers = [nn.Flatten()]
-
-        for _ in range(num_layers):
-            layers.append(nn.Linear(input_size, num_neurons))
-            layers.append(nn.ReLU())
-            input_size = num_neurons  # Set input size for the next layer
-
-        layers.append(nn.Linear(num_neurons, 10))  # Output layer for 10 classes
-        self.model = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.model(x)
+from utils import (
+    load_neps_checkpoint,
+    save_neps_checkpoint,
+    prepare_mnist_dataloader,
+    SimpleNN
+)
 
 
 def training_pipeline(
-        # neps parameters for load-save of checkpoints
-        pipeline_directory,
-        previous_pipeline_directory,
-        # hyperparameters
-        num_layers,
-        num_neurons,
-        learning_rate,
-        optimizer,
-        epochs
-    ):
+    # neps parameters for load-save of checkpoints
+    pipeline_directory,
+    previous_pipeline_directory,
+    # hyperparameters
+    num_layers,
+    num_neurons,
+    learning_rate,
+    optimizer,
+    epochs,
+    # other parameters
+    log_tensorboard=True,
+):
+    # Load data
     _start = time.time()
-    # Transformations applied on each image
-    transform = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Normalize(
-                (0.1307,), (0.3081,)
-            ),  # Mean and Std Deviation for MNIST
-        ]
-    )
+    train_loader, val_loader = prepare_mnist_dataloader()
+    data_load_time = time.time() - _start
 
-    start = time.time()
-    # Loading MNIST dataset
-    dataset = datasets.MNIST(
-        root="./data", train=True, download=True, transform=transform
-    )
-    train_set, val_set = torch.utils.data.random_split(dataset, [55000, 5000])
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
-    val_loader = DataLoader(val_set, batch_size=1000, shuffle=False)
-    data_load_time = time.time() - start
-
+    # Instantiate model and loss
     model = SimpleNN(28 * 28, num_layers, num_neurons)
     criterion = nn.CrossEntropyLoss()
 
@@ -72,25 +47,17 @@ def training_pipeline(
     optimizer_name = optimizer
     if optimizer == "adam":
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    elif optimizer == "adamw":
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
     elif optimizer == "sgd":
         optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     else:
         raise KeyError(f"optimizer {optimizer} is not available")
 
     # Load possible checkpoint
-    steps = None
-    if previous_pipeline_directory is not None:
-        checkpoint = torch.load(previous_pipeline_directory / "checkpoint.pth")
-        model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        if "steps" in checkpoint:
-            steps = checkpoint["steps"]
-        if "rng_state" in checkpoint:
-            torch.set_rng_state(checkpoint["rng_state"])
-        if "numpy_rng_state" in checkpoint:
-            np.random.set_state(checkpoint["numpy_rng_state"])
-        if "python_rng_state" in checkpoint:
-            random.setstate(checkpoint["python_rng_state"])
+    start = time.time()
+    steps, model, optimizer = load_neps_checkpoint(previous_pipeline_directory, model, optimizer)
+    checkpoint_load_time = time.time() - start
 
     start = time.time()
     validation_time = 0
@@ -108,6 +75,7 @@ def training_pipeline(
             loss_per_batch.append(loss.item())
 
         # perform validation per epoch
+        start = time.time()
         model.eval()
         val_loss = 0
         with torch.no_grad():
@@ -115,32 +83,26 @@ def training_pipeline(
                 output = model(data)
                 val_loss += criterion(output, target).item()
         val_loss /= len(val_loader.dataset)
+        validation_time += (time.time() - start)
 
         # refer https://automl.github.io/neps/latest/examples/convenience/neps_tblogger_tutorial/
         start = time.time()
-        tblogger.log(
-            loss=np.mean(loss_per_batch),
-            current_epoch=epoch+1,
-            # write_summary_incumbent=True,  # this fails, need to fix?
-            writer_config_scalar=True,
-            writer_config_hparam=True,
-            extra_data={"val_loss": tblogger.scalar_logging(value=val_loss)},
-        )
-        validation_time += (time.time() - start)
-    training_time = time.time() - start - validation_time
+        if log_tensorboard:
+            tblogger.log(
+                loss=val_loss,
+                current_epoch=epoch+1,
+                # write_summary_incumbent=True,  # this fails, need to fix?
+                writer_config_scalar=True,
+                writer_config_hparam=True,
+                extra_data={"train_loss": tblogger.scalar_logging(value=np.mean(loss_per_batch))},
+            )
+        logging_time = time.time() - start
+    training_time = time.time() - start - (
+        validation_time + data_load_time + checkpoint_load_time + logging_time
+    )
 
     # Save checkpoint
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "rng_state": torch.get_rng_state(),
-            "numpy_rng_state": np.random.get_state(),
-            "python_rng_state": random.getstate(),
-            "steps": epoch,
-        },
-        pipeline_directory / "checkpoint.pth",
-    )
+    save_neps_checkpoint(pipeline_directory, epoch, model, optimizer)
 
     return {
         "loss": val_loss,  # validation loss in the last epoch
@@ -150,6 +112,8 @@ def training_pipeline(
             "data_load_time": data_load_time,
             "training_time": training_time,
             "validation_time": validation_time,
+            "checkpoint_load_time": checkpoint_load_time,
+            "logging_time": logging_time,
             "hyperparameters": {
                 "num_layers": num_layers,
                 "num_neurons": num_neurons,

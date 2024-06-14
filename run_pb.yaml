@@ -6,15 +6,15 @@ pipeline_space:
   num_neurons:
     lower: 16
     upper: 128
-    default: 64
+    default: 32
   learning_rate:
     lower: 0.001
     upper: 0.1
     default: 0.01
     log: true
   optimizer:
-    choices: ["adam", "sgd"]
-    default: "adam"
+    choices: ["adamw", "adam", "sgd"]
+    default: "adamw"
   epochs:
     lower: 1
     upper: 10
@@ -26,7 +26,7 @@ run_pipeline:
 
 searcher: priorband
 
-root_directory: ./neps_output/pb
+root_directory: ./neps_debug/pb
 max_evaluations_total: 50
 post_run_summary: true
 overwrite_working_directory: false
