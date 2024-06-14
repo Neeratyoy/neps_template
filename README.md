@@ -37,3 +37,22 @@ python hpo_target.py --algo priorband
 ```bash
 tensorboard --logdir ./neps_output/<dir-name>  # check the yaml for each run's root directory
 ```
+
+# Final Evaluation
+
+To continue training the best-found configuration:
+```bash
+python best_model_eval.py --root_directory <path-to-neps-output> --output_path final_model/ 
+```
+
+In case the searcher was a multi-fidelity optimizer and the incumbent was early-stopped, can set a new budget to continue training:
+```bash
+python best_model_eval.py --root_directory <path-to-neps-output> --output_path final_model/ --max_budget 15
+```
+
+However, if using an LR schedule configured for a different max budget, this may not be the  correct way to retrain.
+
+In that case, this is more appropriate:
+```bash
+python best_model_eval.py --root_directory <path-to-neps-output> --output_path final_model/  --max_budget 15 --evaluate_from_scratch
+```

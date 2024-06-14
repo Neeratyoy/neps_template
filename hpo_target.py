@@ -33,6 +33,7 @@ def training_pipeline(
     epochs,
     # other parameters
     log_tensorboard=True,
+    verbose=False,
 ):
     # Load data
     _start = time.time()
@@ -84,6 +85,13 @@ def training_pipeline(
                 val_loss += criterion(output, target).item()
         val_loss /= len(val_loader.dataset)
         validation_time += (time.time() - start)
+
+        if verbose:
+            print(
+                f"Epoch {epoch+1}/{epochs}, "
+                f"loss: {np.mean(loss_per_batch):.5f}, "
+                f"val loss: {val_loss:.5f}"
+            )
 
         # refer https://automl.github.io/neps/latest/examples/convenience/neps_tblogger_tutorial/
         start = time.time()
