@@ -10,7 +10,7 @@ from torchvision import datasets, transforms
 from typing import Tuple
 
 
-def prepare_mnist_dataloader() -> Tuple[DataLoader, DataLoader]:
+def prepare_mnist_dataloader(batch_size: int=64) -> Tuple[DataLoader, DataLoader]:
     # Transformations applied on each image
     transform = transforms.Compose(
         [
@@ -25,7 +25,7 @@ def prepare_mnist_dataloader() -> Tuple[DataLoader, DataLoader]:
         root="./data", train=True, download=True, transform=transform
     )
     train_set, val_set = torch.utils.data.random_split(dataset, [55000, 5000])
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=1000, shuffle=False)
 
     return train_loader, val_loader

@@ -26,9 +26,11 @@ def training_pipeline(
     pipeline_directory,
     previous_pipeline_directory,
     # hyperparameters
+    batch_size,
     num_layers,
     num_neurons,
     learning_rate,
+    weight_decay,
     optimizer,
     epochs,
     # other parameters
@@ -37,7 +39,7 @@ def training_pipeline(
 ):
     # Load data
     _start = time.time()
-    train_loader, val_loader = prepare_mnist_dataloader()
+    train_loader, val_loader = prepare_mnist_dataloader(batch_size=batch_size)
     data_load_time = time.time() - _start
 
     # Instantiate model and loss
@@ -47,11 +49,11 @@ def training_pipeline(
     # Select optimizer
     optimizer_name = optimizer
     if optimizer == "adam":
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     elif optimizer == "adamw":
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     elif optimizer == "sgd":
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+        optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     else:
         raise KeyError(f"optimizer {optimizer} is not available")
 

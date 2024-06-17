@@ -2,28 +2,22 @@ pipeline_space:
   num_layers:
     lower: 2
     upper: 4
-    default: 3
   num_neurons:
     lower: 32
     upper: 256
-    default: 128
   batch_size:
     lower: 32
     upper: 1024
-    default: 128
   learning_rate:
     lower: 0.0001
     upper: 0.1
     log: true
-    default: 0.001
   weight_decay:
     lower: 0.0001
     upper: 0.1
     log: true
-    default: 0.01
   optimizer:
     choices: ["adamw", "adam", "sgd"]
-    default: adamw
   epochs:
     lower: 1
     upper: 10
@@ -33,9 +27,10 @@ run_pipeline:
   path: ./hpo_target.py
   name: training_pipeline
 
-searcher: priorband
+searcher: hyperband
 
-root_directory: ./neps_debug/pb
+root_directory: ./ss24-automl-lecture/
 max_evaluations_total: 50
 post_run_summary: true
 overwrite_working_directory: false
+task_id: 1

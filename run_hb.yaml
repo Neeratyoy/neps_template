@@ -1,13 +1,20 @@
 pipeline_space:
   num_layers:
-    lower: 1
-    upper: 3
+    lower: 2
+    upper: 4
   num_neurons:
-    lower: 16
-    upper: 128
+    lower: 32
+    upper: 256
+  batch_size:
+    lower: 32
+    upper: 1024
   learning_rate:
-    lower: 0.001
-    upper: 0.01
+    lower: 0.0001
+    upper: 0.1
+    log: true
+  weight_decay:
+    lower: 0.0001
+    upper: 0.1
     log: true
   optimizer:
     choices: ["adamw", "adam", "sgd"]
