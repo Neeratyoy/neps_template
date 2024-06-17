@@ -138,7 +138,10 @@ def training_pipeline(
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--algo", type=str, default="priorband", choices=["priorband", "bo", "hyperband", "rs"]
+        "--algo",
+        type=str,
+        default="priorband",
+        choices=["priorband", "bo", "hyperband", "rs", "stage1", "stage2"]
     )
     args = parser.parse_args()
     return args
@@ -158,7 +161,11 @@ if __name__ == "__main__":
             run_args = "run_hb.yaml"
         case "rs":
             run_args = "run_rs.yaml"
+        case "stage1":
+            run_args = "run_first_stage.yaml"
+        case "stage2":
+            run_args = "run_second_stage.yaml"
         case _:
             raise ValueError(f"Invalid algo: {args.algo}")
 
-    neps.run(run_args=Path(__file__).parent.absolute() / run_args)
+    neps.run(run_args=Path(__file__).parent.absolute() / "configs" / run_args)
