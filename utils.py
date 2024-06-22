@@ -32,13 +32,18 @@ def prepare_mnist_dataloader(batch_size: int=64) -> Tuple[DataLoader, DataLoader
 
 
 def load_neps_checkpoint(
-        previous_pipeline_directory: Path, model: nn.Module, optimizer: torch.optim.Optimizer
+        previous_pipeline_directory: Path,
+        model: nn.Module,
+        optimizer: torch.optim.Optimizer,
+        scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
     ) -> Tuple[int, nn.Module, torch.optim.Optimizer]:
     steps = None
     if previous_pipeline_directory is not None:
         checkpoint = torch.load(previous_pipeline_directory / "checkpoint.pth")
         model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        if scheduler is not None and "scheduler_state_dict" in checkpoint:
+            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
         if "steps" in checkpoint:
             steps = checkpoint["steps"]
         if "rng_state" in checkpoint:
@@ -51,17 +56,24 @@ def load_neps_checkpoint(
 
 
 def save_neps_checkpoint(
-    pipeline_directory: Path, epoch: int, model: nn.Module, optimizer: torch.optim.Optimizer
+    pipeline_directory: Path,
+    epoch: int,
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
 ) -> None:
+    _save_dict = {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "rng_state": torch.get_rng_state(),
+        "numpy_rng_state": np.random.get_state(),
+        "python_rng_state": random.getstate(),
+        "steps": epoch,
+    }
+    if scheduler is not None and hasattr(scheduler, "state_dict"):
+        _save_dict["scheduler_state_dict"] = scheduler.state_dict()
     torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "rng_state": torch.get_rng_state(),
-            "numpy_rng_state": np.random.get_state(),
-            "python_rng_state": random.getstate(),
-            "steps": epoch,
-        },
+        _save_dict,
         pipeline_directory / "checkpoint.pth",
     )
 

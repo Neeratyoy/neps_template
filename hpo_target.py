@@ -57,9 +57,12 @@ def training_pipeline(
     else:
         raise KeyError(f"optimizer {optimizer} is not available")
 
+    # Initialize LR scheduler
+    scheduler = None  # type: torch.optim.lr_scheduler.LRScheduler
+
     # Load possible checkpoint
     start = time.time()
-    steps, model, optimizer = load_neps_checkpoint(previous_pipeline_directory, model, optimizer)
+    steps, model, optimizer = load_neps_checkpoint(previous_pipeline_directory, model, optimizer, scheduler)
     checkpoint_load_time = time.time() - start
 
     start = time.time()
@@ -112,7 +115,7 @@ def training_pipeline(
     )
 
     # Save checkpoint
-    save_neps_checkpoint(pipeline_directory, epoch, model, optimizer)
+    save_neps_checkpoint(pipeline_directory, epoch, model, optimizer, scheduler)
 
     return {
         "loss": val_loss,  # validation loss in the last epoch
