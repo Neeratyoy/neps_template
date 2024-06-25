@@ -17,6 +17,7 @@ from utils import (
     load_neps_checkpoint,
     save_neps_checkpoint,
     prepare_mnist_dataloader,
+    set_seeds,
     SimpleNN
 )
 
@@ -65,7 +66,7 @@ def training_pipeline(
     steps, model, optimizer = load_neps_checkpoint(previous_pipeline_directory, model, optimizer, scheduler)
     checkpoint_load_time = time.time() - start
 
-    start = time.time()
+    train_start = time.time()
     validation_time = 0
     # Training loop
     steps = steps or 0  # accounting for continuation if checkpoint loaded
@@ -110,9 +111,7 @@ def training_pipeline(
                 extra_data={"train_loss": tblogger.scalar_logging(value=np.mean(loss_per_batch))},
             )
         logging_time = time.time() - start
-    training_time = time.time() - start - (
-        validation_time + data_load_time + checkpoint_load_time + logging_time
-    )
+    training_time = time.time() - train_start - validation_time - logging_time
 
     # Save checkpoint
     save_neps_checkpoint(pipeline_directory, epoch, model, optimizer, scheduler)
@@ -138,13 +137,18 @@ def training_pipeline(
     }
 
 
-def get_args():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--algo",
         type=str,
         default="priorband",
-        choices=["priorband", "bo", "hyperband", "rs", "stage1", "stage2"]
+        choices=["priorband", "bo", "hyperband", "random_search", "random_search_prior", "pibo"]
+    )    
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
     )
     args = parser.parse_args()
     return args
@@ -160,15 +164,16 @@ if __name__ == "__main__":
             run_args = "run_pb.yaml"
         case "bo":
             run_args = "run_bo.yaml"
+        case "pibo":
+            run_args = "run_pibo.yaml"
         case "hyperband":
             run_args = "run_hb.yaml"
-        case "rs":
+        case "random_search":
             run_args = "run_rs.yaml"
-        case "stage1":
-            run_args = "run_first_stage.yaml"
-        case "stage2":
-            run_args = "run_second_stage.yaml"
+        case "random_search_prior":
+            run_args = "run_rs_prior.yaml"
         case _:
             raise ValueError(f"Invalid algo: {args.algo}")
 
+    set_seeds(args.seed)
     neps.run(run_args=Path(__file__).parent.absolute() / "configs" / run_args)

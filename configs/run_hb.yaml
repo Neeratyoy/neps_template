@@ -1,21 +1,16 @@
 pipeline_space:
+  batch_size: 128
   num_layers:
-    lower: 2
-    upper: 4
+    lower: 1
+    upper: 3
   num_neurons:
-    lower: 32
+    lower: 16
     upper: 256
-  batch_size:
-    lower: 32
-    upper: 1024
   learning_rate:
-    lower: 0.0001
+    lower: 0.001
     upper: 0.1
     log: true
-  weight_decay:
-    lower: 0.0001
-    upper: 0.1
-    log: true
+  weight_decay: 0.01
   optimizer:
     choices: ["adamw", "adam", "sgd"]
   epochs:
@@ -27,9 +22,10 @@ run_pipeline:
   path: ./hpo_target.py
   name: training_pipeline
 
-searcher: hyperband
+searcher: 
+  strategy: hyperband
 
-root_directory: ./neps_debug/hb
-max_evaluations_total: 50
+root_directory: ./neps_output/hyperband
+max_evaluations_total: 75
 post_run_summary: true
 overwrite_working_directory: false

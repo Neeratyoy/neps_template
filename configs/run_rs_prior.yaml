@@ -17,20 +17,17 @@ pipeline_space:
   optimizer:
     choices: ["adamw", "adam", "sgd"]
     default: "sgd"
-  epochs:
-    lower: 1
-    upper: 10
-    is_fidelity: true
+  epochs: 10
 
 run_pipeline:
   path: ./hpo_target.py
   name: training_pipeline
 
 searcher: 
-  strategy: priorband
-  sample_default_first: false
+  strategy: random_search
+  use_priors: true
 
-root_directory: ./neps_output/priorband
-max_evaluations_total: 75
+root_directory: ./neps_output/random_search_prior
+max_evaluations_total: 25
 post_run_summary: true
 overwrite_working_directory: false
