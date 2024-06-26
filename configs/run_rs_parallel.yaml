@@ -3,35 +3,26 @@ pipeline_space:
   num_layers:
     lower: 1
     upper: 3
-    default: 2
   num_neurons:
     lower: 16
     upper: 256
-    default: 128
   learning_rate:
     lower: 0.001
     upper: 0.1
     log: true
-    default: 0.01
   weight_decay: 0.01
   optimizer:
     choices: ["adamw", "adam", "sgd"]
-    default: "sgd"
-  epochs:
-    lower: 1
-    upper: 10
-    is_fidelity: true
+  epochs: 10
 
 run_pipeline:
   path: ./hpo_target.py
   name: training_pipeline
 
 searcher: 
-  strategy: priorband
-  eta: 3
-  sample_default_first: false
+  strategy: random_search
 
-root_directory: ./neps_output/priorband
-max_evaluations_total: 75
+root_directory: ./neps_output/random_search_parallel
+max_evaluations_total: 25
 post_run_summary: true
 overwrite_working_directory: false

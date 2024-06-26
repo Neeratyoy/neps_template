@@ -24,6 +24,7 @@ run_pipeline:
 
 searcher: 
   strategy: hyperband
+  eta: 3
 
 root_directory: ./neps_output/hyperband
 max_evaluations_total: 75

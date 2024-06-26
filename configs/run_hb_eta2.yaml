@@ -3,20 +3,16 @@ pipeline_space:
   num_layers:
     lower: 1
     upper: 3
-    default: 2
   num_neurons:
     lower: 16
     upper: 256
-    default: 128
   learning_rate:
     lower: 0.001
     upper: 0.1
     log: true
-    default: 0.01
   weight_decay: 0.01
   optimizer:
     choices: ["adamw", "adam", "sgd"]
-    default: "sgd"
   epochs:
     lower: 1
     upper: 10
@@ -27,11 +23,10 @@ run_pipeline:
   name: training_pipeline
 
 searcher: 
-  strategy: priorband
-  eta: 3
-  sample_default_first: false
+  strategy: hyperband
+  eta: 2
 
-root_directory: ./neps_output/priorband
+root_directory: ./neps_output/hyperband_eta2
 max_evaluations_total: 75
 post_run_summary: true
 overwrite_working_directory: false
