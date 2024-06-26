@@ -1,0 +1,28 @@
+pipeline_space:
+  batch_size: 128
+  num_layers:
+    lower: 1
+    upper: 3
+  num_neurons:
+    lower: 16
+    upper: 256
+  learning_rate:
+    lower: 0.001
+    upper: 0.1
+    log: true
+  weight_decay: 0.01
+  optimizer:
+    choices: ["adamw", "adam", "sgd"]
+  epochs: 10
+
+run_pipeline:
+  path: ./hpo_target.py
+  name: training_pipeline
+
+searcher: 
+  strategy: random_search
+
+root_directory: ./neps_output/random_search_nohup
+max_evaluations_total: 25
+post_run_summary: true
+overwrite_working_directory: false

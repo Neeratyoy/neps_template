@@ -10,6 +10,17 @@ from torchvision import datasets, transforms
 from typing import Tuple
 
 
+def set_seeds(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+
 def prepare_mnist_dataloader(batch_size: int=64) -> Tuple[DataLoader, DataLoader]:
     # Transformations applied on each image
     transform = transforms.Compose(
@@ -35,7 +46,7 @@ def load_neps_checkpoint(
         previous_pipeline_directory: Path,
         model: nn.Module,
         optimizer: torch.optim.Optimizer,
-        scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
+        scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
     ) -> Tuple[int, nn.Module, torch.optim.Optimizer]:
     steps = None
     if previous_pipeline_directory is not None:
@@ -60,7 +71,7 @@ def save_neps_checkpoint(
     epoch: int,
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
-    scheduler: torch.optim.lr_scheduler._LRScheduler | None = None,
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
 ) -> None:
     _save_dict = {
         "model_state_dict": model.state_dict(),
