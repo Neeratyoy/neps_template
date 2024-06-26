@@ -160,7 +160,7 @@ def get_args() -> argparse.Namespace:
 
 
 def _worker(run_args_file):
-    neps.run(run_args=Path(__file__).parent.absolute() / "configs" / run_args_file)
+    neps.run(run_args=run_args_file)
 
 
 if __name__ == "__main__":
@@ -168,31 +168,13 @@ if __name__ == "__main__":
 
     args = get_args()
 
-    match args.algo:
-        case "priorband":
-            run_args_file = "run_pb.yaml"
-        case "priorband_eta2":
-            run_args_file = "run_pb_eta2.yaml"
-        case "priorband_parallel":
-            run_args_file = "run_pb_parallel.yaml"
-        case "bo":
-            run_args_file = "run_bo.yaml"
-        case "pibo":
-            run_args_file = "run_pibo.yaml"
-        case "hyperband":
-            run_args_file = "run_hb.yaml"
-        case "hyperband_eta2":
-            run_args_file = "run_hb_eta2.yaml"
-        case "random_search":
-            run_args_file = "run_rs.yaml"
-        case "random_search_parallel":
-            run_args_file = "run_rs_parallel.yaml"
-        case "random_search_prior":
-            run_args_file = "run_rs_prior.yaml"
-        case "random_search_prior_parallel":
-            run_args_file = "run_rs_prior_parallel.yaml"
-        case _:
-            raise ValueError(f"Invalid algo: {args.algo}")
+    # Setting file extension
+    run_args_file = f"{args.algo}.yaml"
+
+    # Setting full path
+    run_args_file = Path(__file__).parent.absolute() / "configs" / run_args_file
+    if not run_args_file.exists():
+        raise ValueError(f"Invalid algo: {args.algo}. File {run_args_file} not found!")
 
     set_seeds(args.seed)
     if args.n_workers is None:
