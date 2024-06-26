@@ -1,6 +1,7 @@
 import argparse
 import logging
 
+from multiprocessing import Process
 import numpy as np
 import os
 from pathlib import Path
@@ -143,15 +144,23 @@ def get_args() -> argparse.Namespace:
         "--algo",
         type=str,
         default="priorband",
-        choices=["priorband", "bo", "hyperband", "random_search", "random_search_prior", "pibo"]
     )    
     parser.add_argument(
         "--seed",
         type=int,
         default=42,
     )
+    parser.add_argument(
+        "--n_workers",
+        type=int,
+        default=None,
+    )
     args = parser.parse_args()
     return args
+
+
+def _worker(run_args_file):
+    neps.run(run_args=Path(__file__).parent.absolute() / "configs" / run_args_file)
 
 
 if __name__ == "__main__":
@@ -161,19 +170,41 @@ if __name__ == "__main__":
 
     match args.algo:
         case "priorband":
-            run_args = "run_pb.yaml"
+            run_args_file = "run_pb.yaml"
+        case "priorband_eta2":
+            run_args_file = "run_pb_eta2.yaml"
+        case "priorband_parallel":
+            run_args_file = "run_pb_parallel.yaml"
         case "bo":
-            run_args = "run_bo.yaml"
+            run_args_file = "run_bo.yaml"
         case "pibo":
-            run_args = "run_pibo.yaml"
+            run_args_file = "run_pibo.yaml"
         case "hyperband":
-            run_args = "run_hb.yaml"
+            run_args_file = "run_hb.yaml"
+        case "hyperband_eta2":
+            run_args_file = "run_hb_eta2.yaml"
         case "random_search":
-            run_args = "run_rs.yaml"
+            run_args_file = "run_rs.yaml"
+        case "random_search_parallel":
+            run_args_file = "run_rs_parallel.yaml"
         case "random_search_prior":
-            run_args = "run_rs_prior.yaml"
+            run_args_file = "run_rs_prior.yaml"
+        case "random_search_prior_parallel":
+            run_args_file = "run_rs_prior_parallel.yaml"
         case _:
             raise ValueError(f"Invalid algo: {args.algo}")
 
     set_seeds(args.seed)
-    neps.run(run_args=Path(__file__).parent.absolute() / "configs" / run_args)
+    if args.n_workers is None:
+        _worker(run_args_file)
+    else:
+        processes = []
+        # Start workers
+        for _ in range(args.n_workers):
+            p = Process(target=_worker, args=(run_args_file,))
+            processes.append(p)
+            p.start()
+        # Wait for all workers to finish
+        for p in processes:
+            p.join()
+
