@@ -17,7 +17,8 @@ MARKERS = [
 
 def get_incumbent_trace_over_time(
     path: Union[str | Path] = None,
-    use_neps_cost: bool = False
+    use_neps_cost: bool = False,
+    reduce_footprint: bool = False
 ) -> Tuple[list[float], list[float]]:
     """Get incumbent trace over time from a given path.
 
@@ -48,13 +49,20 @@ def get_incumbent_trace_over_time(
 
     # Calculate costs
     if use_neps_cost:
-        cost = df["metadata.time_sampled"] - df["metadata.time_start"].values[0]
+        cost = df["metadata.time_end"] - df["metadata.time_sampled"].values[0]
     else:
         cost = df["result.cost"].cumsum()
     
     # Calculate incumbent trace of performance
     # TODO: incumbent trace tracks the best performance seen till any time t
     performance = df["result.loss"].cummin().values
+
+    # Reduce footprint
+    if reduce_footprint:
+        _df = pd.Series(performance, index=cost)
+        _df = _df.loc[~_df.duplicated(keep='first') | (_df.index == _df.index[-1])]
+        performance = _df.values
+        cost = _df.index.values
     
     return performance, cost
 
@@ -116,10 +124,19 @@ if __name__ == "__main__":
     plt.figure(figsize=(8, 5))
     for i, algo in enumerate(args.algos):
         inc_performance, cost = get_incumbent_trace_over_time(
-            path=args.root_directory / algo,
-            use_neps_cost=args.use_neps_cost
+            args.root_directory / algo,
+            use_neps_cost=args.use_neps_cost,
+            reduce_footprint=True
         )
-        plt.plot(cost, inc_performance, label=algo, marker=MARKERS[i], markersize=6, linewidth=2)
+        plt.step(
+            cost,
+            inc_performance,
+            label=algo,
+            marker=MARKERS[i],
+            markersize=6,
+            linewidth=2,
+            where="post"
+        )
     if args.log_x:
         plt.xscale("log")
     if args.log_y:
