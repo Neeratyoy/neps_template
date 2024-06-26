@@ -115,7 +115,10 @@ if __name__ == "__main__":
     # Plot
     plt.figure(figsize=(8, 5))
     for i, algo in enumerate(args.algos):
-        inc_performance, cost = get_incumbent_trace_over_time(args.root_directory / algo)
+        inc_performance, cost = get_incumbent_trace_over_time(
+            path=args.root_directory / algo,
+            use_neps_cost=args.use_neps_cost
+        )
         plt.plot(cost, inc_performance, label=algo, marker=MARKERS[i], markersize=6, linewidth=2)
     if args.log_x:
         plt.xscale("log")
