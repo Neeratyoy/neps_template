@@ -71,7 +71,7 @@ def get_args() -> argparse.Namespace:
         nargs="+",
         type=str,
         required=True,
-        choices=["random_search", "random_search_prior", "bo", "hyperband", "priorband", "pibo"]
+        help="The list of algos to compare. Pass the output folder name that represents the algo.",
     )
     parser.add_argument(
         "--use_neps_cost",
