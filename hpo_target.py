@@ -150,17 +150,8 @@ def get_args() -> argparse.Namespace:
         type=int,
         default=42,
     )
-    parser.add_argument(
-        "--n_workers",
-        type=int,
-        default=None,
-    )
     args = parser.parse_args()
     return args
-
-
-def _worker(run_args_file):
-    neps.run(run_args=run_args_file)
 
 
 if __name__ == "__main__":
@@ -177,16 +168,5 @@ if __name__ == "__main__":
         raise ValueError(f"Invalid algo: {args.algo}. File {run_args_file} not found!")
 
     set_seeds(args.seed)
-    if args.n_workers is None:
-        _worker(run_args_file)
-    else:
-        processes = []
-        # Start workers
-        for _ in range(args.n_workers):
-            p = Process(target=_worker, args=(run_args_file,))
-            processes.append(p)
-            p.start()
-        # Wait for all workers to finish
-        for p in processes:
-            p.join()
+    neps.run(run_args=run_args_file)
 
